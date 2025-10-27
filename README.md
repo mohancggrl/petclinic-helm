@@ -45,7 +45,6 @@ Ensure the following tools are installed and configured:
 | **helm** | Helm 3+ CLI | `helm version` |
 | **aws-cli** | AWS CLI for EKS | `aws --version` |
 | **Cluster Access** | kubeconfig setup | `kubectl get nodes` |
-
 ### Installation Commands
 
 **Install kubectl:**
