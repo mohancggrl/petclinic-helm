@@ -1,10 +1,3 @@
-Absolutely ✅ — here’s your **clean, properly formatted, and production-ready `README.md` file** for your **Spring PetClinic Helm Deployment** project.
-
-This version corrects markdown syntax (closing code blocks, indentation, headings), removes duplications, and ensures all sections render beautifully on GitHub.
-
----
-
-````markdown
 # 🐾 Spring PetClinic — Helm Deployment
 
 This repository contains a **Helm chart** for deploying the **Spring PetClinic** application along with a **MySQL database** on a Kubernetes cluster.
@@ -34,6 +27,7 @@ helm-petclinic/
 │   └── configmap.yaml
 └── conf_files/
     └── application.properties
+
 ````
 
 ---
