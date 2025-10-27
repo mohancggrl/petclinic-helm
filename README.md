@@ -9,11 +9,6 @@ The setup provides:
 - Wait-for-MySQL initContainer for clean startup
 - Support for multiple environments via values override files
 
----
-
-## 📁 Repository Structure
-# 🐾 Spring PetClinic - Helm Deployment
-
 ## 📁 Repository Structure
 ```bash
 helm-petclinic/
@@ -30,10 +25,6 @@ helm-petclinic/
 └── conf_files/
     └── application.properties
 
-
-
----
-
 # 🚀 Helm Deployment Guide for Kubernetes
 
 ## 📋 Table of Contents
@@ -43,8 +34,6 @@ helm-petclinic/
 - [Deployment Examples](#-deployment-examples)
 - [Verification](#-verification)
 - [Troubleshooting](#-troubleshooting)
-
----
 
 ## ⚙️ Prerequisites
 
