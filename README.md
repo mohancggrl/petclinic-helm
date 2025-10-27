@@ -12,6 +12,24 @@ The setup provides:
 ---
 
 ## 📁 Repository Structure
+# 🐾 Spring PetClinic - Helm Deployment
+
+## 📁 Repository Structure
+```bash
+helm-petclinic/
+├── Chart.yaml
+├── values.yaml
+├── conf_values.yaml
+├── templates/
+│   ├── mysql-secret.yaml
+│   ├── mysql-deployment.yaml
+│   ├── mysql-service.yaml
+│   ├── spring-deployment.yaml
+│   ├── spring-service.yaml
+│   └── configmap.yaml
+└── conf_files/
+    └── application.properties
+
 
 
 ---
