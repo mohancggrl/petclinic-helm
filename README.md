@@ -34,22 +34,39 @@ helm-petclinic/
 
 ---
 
+# 🚀 Helm Deployment Guide for Kubernetes
+
+## 📋 Table of Contents
+- [Prerequisites](#-prerequisites)
+- [Cluster Connection](#-connect-to-cluster)
+- [Helm Basics](#-helm-basics)
+- [Deployment Examples](#-deployment-examples)
+- [Verification](#-verification)
+- [Troubleshooting](#-troubleshooting)
+
+---
+
 ## ⚙️ Prerequisites
 
 Ensure the following tools are installed and configured:
 
-| Tool | Description | Verify |
-|------|--------------|--------|
+| Tool | Description | Verify Command |
+|------|-------------|----------------|
 | **kubectl** | Kubernetes CLI | `kubectl version --client` |
 | **helm** | Helm 3+ CLI | `helm version` |
-| **aws-cli** *(if using EKS)* | AWS CLI to manage EKS clusters | `aws --version` |
-| **Cluster Access** | Ensure kubeconfig is set | `kubectl get nodes` |
+| **aws-cli** | AWS CLI for EKS | `aws --version` |
+| **Cluster Access** | kubeconfig setup | `kubectl get nodes` |
 
----
+### Installation Commands
 
-## ☁️ Connect to Cluster
-
-For EKS:
+**Install kubectl:**
 ```bash
-aws eks update-kubeconfig --region us-west-2 --name eesha
-kubectl get nodes
+# macOS
+brew install kubectl
+
+# Linux
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+# Windows
+choco install kubernetes-cli
