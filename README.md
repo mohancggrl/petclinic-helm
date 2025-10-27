@@ -54,13 +54,6 @@ aws eks update-kubeconfig --region us-west-2 --name eesha
 kubectl get nodes
 ```
 
-### For Minikube:
-
-```bash
-minikube start
-kubectl get nodes
-```
-
 You should see a list of nodes confirming cluster connectivity.
 
 ---
