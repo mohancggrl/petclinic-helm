@@ -1,0 +1,9 @@
+# ===============================
+# MySQL Configuration
+# ===============================
+mysql:
+  host: mysql-db
+  port: 3306
+  database: petclinicdb
+app:
+  port: 8080

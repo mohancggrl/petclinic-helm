@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-spring-petclinic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-spring-petclinic
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-spring-petclinic
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: {{ .Values.mysql.image }}
+          command: ['sh', '-c', 'until mysqladmin ping -h {{ .Release.Name }}-mysql-db -u$MYSQL_USER -p$MYSQL_PASSWORD --silent; do echo "Waiting for MySQL..."; sleep 5; done;']
+          env:
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-mysql-credentials
+                  key: username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-mysql-credentials
+                  key: password
+      containers:
+        - name: spring-petclinic
+          image: {{ .Values.spring.repo }}/{{ .Values.spring.image }}:{{ .Values.spring.tag }}
+          ports:
+            - containerPort: {{ .Values.spring.containerPort }}
+          env:
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-mysql-credentials
+                  key: username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-mysql-credentials
+                  key: password
+          volumeMounts:
+            - name: config-volume
+              mountPath: {{ .Values.spring.mountPath }}/{{ .Values.spring.confFile }}
+              subPath: {{ .Values.spring.confFile }}
+          resources:
+            requests:
+              cpu: {{ .Values.spring.resources.requests.cpu }}
+              memory: {{ .Values.spring.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.spring.resources.limits.cpu }}
+              memory: {{ .Values.spring.resources.limits.memory }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ .Release.Name }}-app-config

@@ -1,0 +1,28 @@
+mysql:
+  image: mysql:8.0
+  database: petclinicdb
+  credentials:
+    username: petuser
+    password: Mohan@123
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+spring:
+  repo: mohancggrl
+  image: petclinic
+  tag: v1
+  containerPort: 8080
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+  mountPath: /opt/petclinic/config
+  confFile: application.properties
