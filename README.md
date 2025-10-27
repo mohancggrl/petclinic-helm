@@ -26,15 +26,27 @@ helm-petclinic/
 │   └── configmap.yaml
 └── conf_files/
     └── application.properties
-
+---
 ## ⚙️ Prerequisites
 
-| Tool | Description | Verification Command |
-|------|-------------|---------------------|
-| **Kubernetes Cluster** | v1.19+ | `kubectl version --short` |
-| **kubectl** | Kubernetes CLI | `kubectl version --client` |
-| **Helm** | v3.8+ | `helm version --short` |
-| **PersistentVolume Provisioner** | For MySQL storage | `kubectl get storageclass` |
+Ensure the following tools and resources are available before deploying:
+
+| Tool / Resource | Description | Verification Command |
+|-----------------|--------------|----------------------|
+| **Kubernetes Cluster** | A running cluster (v1.19 or later) | `kubectl version --short` |
+| **kubectl** | Kubernetes command-line tool | `kubectl version --client` |
+| **Helm** | Helm package manager (v3.8 or later) | `helm version --short` |
+| **PersistentVolume Provisioner** | For MySQL data persistence | `kubectl get storageclass` |
+
+---
+
+## 🚀 Quick Start
+
+### 1. Clone the Repository
+```bash
+git clone <repository-url>
+cd helm-petclinic
+
 
 ## 🚀 Quick Start
 
