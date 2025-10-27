@@ -1,37 +1,31 @@
-```markdown
 # 🐾 Spring PetClinic — Helm Deployment
 
-## 📖 Overview
+This repository contains a **Helm chart** for deploying the **Spring PetClinic** application along with a **MySQL database** on a Kubernetes cluster.
 
-This repository contains a **Helm chart** for deploying the **Spring PetClinic** application along with a **MySQL database** on Kubernetes. The chart automates the deployment of all necessary components and ensures proper configuration between the Spring Boot application and MySQL database.
+The setup provides:
+- Automated Kubernetes resource creation (Deployment, Service, ConfigMap, Secret)
+- Seamless MySQL–Spring Boot integration
+- Configurable environment using Helm values
+- `initContainer` to ensure MySQL is ready before app startup
+- Support for multiple environments via values override files
 
-## ✨ Features
-
-- ✅ **Complete Stack Deployment** - Spring Boot + MySQL in single command
-- ✅ **Configuration Management** - Environment-specific configs via Helm values
-- ✅ **Health Checks** - Readiness and liveness probes for both services
-- ✅ **Database Initialization** - Automated schema creation and data seeding
-- ✅ **Service Discovery** - Automatic connection between application and database
-- ✅ **Persistent Storage** - PVC for MySQL data persistence
-- ✅ **Wait-for-DB Pattern** - initContainer ensures MySQL is ready before app starts
+---
 
 ## 📁 Repository Structure
-
-```
+```bash
 helm-petclinic/
-├── Chart.yaml              # Chart metadata
-├── values.yaml             # Default configuration values
-├── conf_values.yaml        # Environment-specific overrides
-├── templates/              # Kubernetes manifest templates
-│   ├── mysql-secret.yaml   # MySQL credentials secret
-│   ├── mysql-deployment.yaml    # MySQL deployment
-│   ├── mysql-service.yaml       # MySQL service
-│   ├── spring-deployment.yaml   # Spring Boot deployment
-│   ├── spring-service.yaml      # Spring Boot service
-│   └── configmap.yaml           # Application configuration
+├── Chart.yaml
+├── values.yaml
+├── conf_values.yaml
+├── templates/
+│   ├── mysql-secret.yaml
+│   ├── mysql-deployment.yaml
+│   ├── mysql-service.yaml
+│   ├── spring-deployment.yaml
+│   ├── spring-service.yaml
+│   └── configmap.yaml
 └── conf_files/
-    └── application.properties   # Spring Boot config template
-```
+    └── application.properties
 
 ## ⚙️ Prerequisites
 
