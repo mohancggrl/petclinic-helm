@@ -45,8 +45,8 @@ spec:
                   key: password
           volumeMounts:
             - name: config-volume
-              mountPath: {{ .Values.spring.mountPath }}/{{ .Values.spring.confFile }}
-              subPath: {{ .Values.spring.confFile }}
+              mountPath: {{ .Values.mountPath }}/{{ .Values.confFile }}
+              subPath: {{ .Values.confFile }}
           resources:
             requests:
               cpu: {{ .Values.spring.resources.requests.cpu }}
@@ -57,4 +57,4 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ .Release.Name }}-app-config
+            name: {{ .Release.Name }}-spring-config
