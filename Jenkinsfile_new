@@ -1,0 +1,97 @@
+pipeline {
+    agent { 
+        label 'mohan' 
+    } 
+
+    parameters {
+        string(
+            name: 'IMAGE_TAG', 
+            defaultValue: 'latest', 
+            description: 'Docker image tag to deploy'
+        )
+    }
+
+    environment {
+        HELM_RELEASE = "petclinic"
+        HELM_CHART = "./"
+        KUBE_CLUSTER = "devil-eks-cluster"
+        KUBE_REGION = "us-west-2"
+        NAMESPACE = "default"
+    }
+
+    stages {
+
+        stage('Initialize') {
+            steps {
+                echo "🧩 Starting pipeline for ${HELM_RELEASE}..."
+                sh """
+                    echo "Current workspace: $(pwd)"
+                    ls -ltr
+                """
+            }
+        }
+
+        stage('Configure AWS & EKS') {
+            steps {
+                withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                    credentialsId: 'aws_credentials',
+                    usernameVariable: 'AWS_ACCESS_KEY_ID',
+                    passwordVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+
+                    sh """
+                        echo "🔧 Configuring AWS and EKS..."
+                        export AWS_DEFAULT_REGION=${KUBE_REGION}
+                        aws sts get-caller-identity
+                        aws eks update-kubeconfig --name ${KUBE_CLUSTER}
+                        kubectl get nodes
+                    """
+                }
+            }
+        }
+
+        stage('Verify Kubernetes Context') {
+            steps {
+                sh """
+                    echo "🧠 Verifying Kubernetes context..."
+                    kubectl config current-context
+                    kubectl get ns
+                """
+            }
+        }
+
+        stage('Helm Deployment') {
+            steps {
+                echo "🚀 Running Helm upgrade/install with image tag: ${params.IMAGE_TAG}"
+                sh """
+                    helm version
+                    helm ls --namespace ${NAMESPACE} || true
+
+                    helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
+                        --namespace ${NAMESPACE} \
+                        -f conf_values.yaml \
+                        --set spring.tag=${params.IMAGE_TAG} \
+                        --wait
+                """
+            }
+        }
+
+        stage('Post-Deployment Verification') {
+            steps {
+                sh """
+                    echo "✅ Verifying Deployment..."
+                    helm list --namespace ${NAMESPACE}
+                    kubectl get all -n ${NAMESPACE}
+                """
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "🎉 Deployment succeeded! Helm release ${HELM_RELEASE} updated successfully."
+        }
+        failure {
+            echo "❌ Deployment failed. Check logs for details."
+        }
+    }
+}
