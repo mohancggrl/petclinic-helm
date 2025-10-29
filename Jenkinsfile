@@ -11,7 +11,7 @@ pipeline {
     }
     environment {
         HELM_RELEASE = "petclinic"
-        HELM_CHART = "./petclinic-helm"
+        HELM_CHART = "./"
         KUBE_CLUSTER = "devil-eks-cluster"
         KUBE_REGION = "us-west-2"
         NAMESPACE = "default"
