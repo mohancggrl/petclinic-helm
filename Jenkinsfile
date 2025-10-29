@@ -38,7 +38,7 @@ pipeline {
                         kubectl get nodes
 
                         # Run Helm upgrade with image tag parameter
-                        helm repo update
+                        # helm repo update
                         helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
                             --namespace ${NAMESPACE} \
                             -f conf_values.yaml \
