@@ -21,51 +21,47 @@ pipeline {
 
     stages {
 
-        stage('Initialize') {
-            steps {
-                echo "🧩 Starting pipeline for ${HELM_RELEASE}..."
-                sh """
-                    echo "Current workspace: $(pwd)"
-                    ls -ltr
-                """
-            }
-        }
-
-        stage('Configure AWS & EKS') {
+        stage('Setup AWS Credentials & EKS Context') {
             steps {
                 withCredentials([[$class: 'UsernamePasswordMultiBinding',
                     credentialsId: 'aws_credentials',
                     usernameVariable: 'AWS_ACCESS_KEY_ID',
                     passwordVariable: 'AWS_SECRET_ACCESS_KEY']]) {
 
-                    sh """
-                        echo "🔧 Configuring AWS and EKS..."
-                        export AWS_DEFAULT_REGION=${KUBE_REGION}
-                        aws sts get-caller-identity
-                        aws eks update-kubeconfig --name ${KUBE_CLUSTER}
+                    echo "🔧 Configuring AWS & EKS Cluster: ${KUBE_CLUSTER}"
+
+                    // use single quotes to avoid Groovy expanding $ in shell
+                    sh '''
+                        echo "Setting AWS region and updating kubeconfig..."
+                        export AWS_DEFAULT_REGION=$KUBE_REGION
+                        aws eks update-kubeconfig --name $KUBE_CLUSTER
+                        echo "Verifying cluster access..."
                         kubectl get nodes
-                    """
+                    '''
                 }
             }
         }
 
-        stage('Verify Kubernetes Context') {
+        stage('Verify Helm & Kubernetes Setup') {
             steps {
-                sh """
-                    echo "🧠 Verifying Kubernetes context..."
+                echo "🧩 Checking Helm and Kubernetes setup..."
+                sh '''
+                    echo "Helm Version:"
+                    helm version
+                    echo "Kubectl Context:"
                     kubectl config current-context
-                    kubectl get ns
-                """
+                    echo "Existing Helm Releases:"
+                    helm list -A || true
+                '''
             }
         }
 
-        stage('Helm Deployment') {
+        stage('Deploy / Upgrade Helm Release') {
             steps {
-                echo "🚀 Running Helm upgrade/install with image tag: ${params.IMAGE_TAG}"
-                sh """
-                    helm version
-                    helm ls --namespace ${NAMESPACE} || true
+                echo "🚀 Deploying Helm release '${HELM_RELEASE}' with image tag: ${params.IMAGE_TAG}"
 
+                // use double quotes here because we want to expand ${params.IMAGE_TAG}
+                sh """
                     helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
                         --namespace ${NAMESPACE} \
                         -f conf_values.yaml \
@@ -77,21 +73,23 @@ pipeline {
 
         stage('Post-Deployment Verification') {
             steps {
-                sh """
-                    echo "✅ Verifying Deployment..."
-                    helm list --namespace ${NAMESPACE}
-                    kubectl get all -n ${NAMESPACE}
-                """
+                echo "🔍 Verifying deployment..."
+                sh '''
+                    echo "Helm Status:"
+                    helm status petclinic
+                    echo "all in default namespace:"
+                    kubectl get all -n default -o wide
+                '''
             }
         }
     }
 
     post {
         success {
-            echo "🎉 Deployment succeeded! Helm release ${HELM_RELEASE} updated successfully."
+            echo "✅ Deployment completed successfully! 🎉"
         }
         failure {
-            echo "❌ Deployment failed. Check logs for details."
+            echo "❌ Pipeline failed. Check logs for details."
         }
     }
 }
