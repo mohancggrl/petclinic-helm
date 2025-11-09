@@ -1,0 +1,62 @@
+name: Cleanup Helm Release from EKS
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: 'Helm release name to uninstall (e.g. petclinic)'
+        required: true
+        default: 'petclinic'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    env:
+      KUBE_CLUSTER: devil-eks-cluster
+      KUBE_REGION: us-west-2
+      NAMESPACE: default
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.KUBE_REGION }}
+
+      # Step 3: Install kubectl and helm
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.29.0
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      # Step 4: Connect to EKS and uninstall Helm release
+      - name: Uninstall Helm Release
+        run: |
+          echo "🔧 Configuring EKS cluster: $KUBE_CLUSTER..."
+          aws eks update-kubeconfig --name $KUBE_CLUSTER --region $KUBE_REGION
+          echo "🗑️ Removing Helm release: ${{ github.event.inputs.release_name }}..."
+          helm uninstall ${{ github.event.inputs.release_name }} -n ${NAMESPACE} || echo "Release not found."
+          echo "✅ Verifying cleanup..."
+          helm list -A || true
+          kubectl get all -n ${NAMESPACE} || true
+
+      # Step 5: Success/Failure message
+      - name: Job completed
+        if: ${{ success() }}
+        run: echo "✅ Helm release removed successfully!"
+
+      - name: Job failed
+        if: ${{ failure() }}
+        run: echo "❌ Cleanup failed. Check logs for details."
