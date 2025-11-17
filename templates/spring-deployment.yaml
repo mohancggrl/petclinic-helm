@@ -12,6 +12,9 @@ spec:
       labels:
         app: {{ .Release.Name }}-spring-petclinic
     spec:
+      imagePullSecrets:
+        - name: artifactory-regcred
+
       initContainers:
         - name: wait-for-mysql
           image: {{ .Values.mysql.image }}

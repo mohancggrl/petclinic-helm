@@ -13,7 +13,7 @@ mysql:
       memory: 512Mi
 
 spring:
-  repo: mohancggrl
+  repo: "44.245.219.19/images.petclinic"
   image: petclinic
   tag: v1
   containerPort: 8080
@@ -26,3 +26,8 @@ spring:
       memory: 1Gi
 mountPath: /opt/petclinic/config
 confFile: application.properties
+
+artifactory:
+  server: "44.245.219.19:8082/"
+  username: "admin"
+  password: ""
