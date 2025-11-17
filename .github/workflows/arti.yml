@@ -1,0 +1,81 @@
+name: Deploy to EKS with Helm jfrog Artifactory
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag to deploy (e.g. latest, v1.0)'
+        required: true
+        default: 'latest'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      HELM_RELEASE: petclinic
+      HELM_CHART: ./
+      KUBE_CLUSTER: devil-eks-cluster
+      KUBE_REGION: us-west-2
+      NAMESPACE: default
+
+    steps:
+      # 🧱 Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ☁️ Step 2: Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.KUBE_REGION }}
+
+      # ☸️ Step 3: Set up kubectl and helm
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.29.0
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      # 🔧 Step 4: Connect to EKS
+      - name: Configure kubeconfig for EKS
+        run: |
+          echo "🔧 Configuring EKS cluster: $KUBE_CLUSTER..."
+          aws eks update-kubeconfig --name $KUBE_CLUSTER --region $KUBE_REGION
+          kubectl get nodes
+          helm version
+          helm list -A || true
+
+      # 🚀 Step 5: Deploy with Helm
+      - name: Deploy Helm chart
+        run: |
+          echo "🚀 Deploying Helm release ${HELM_RELEASE} with image tag: ${{ github.event.inputs.image_tag }}"
+          helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
+            --namespace ${NAMESPACE} \
+            -f conf_values.yaml \
+            --set spring.tag=${{ github.event.inputs.image_tag }} \
+            --set artifactory.password="${{ secrets.ARTIFACTORY_TOKEN }}" \
+            --wait
+
+      # ✅ Step 6: Verify Deployment
+      - name: Verify Deployment
+        run: |
+          echo "✅ Verifying deployment..."
+          helm status ${HELM_RELEASE}
+          kubectl get all -n ${NAMESPACE} -o wide
+
+      # ✅ Step 7: Success Message
+      - name: Success Message
+        if: ${{ success() }}
+        run: echo "✅ Deployment completed successfully!"
+
+      # ❌ Step 8: Failure Message
+      - name: Failure Message
+        if: ${{ failure() }}
+        run: echo "❌ Deployment failed. Check logs for details."
