@@ -2,8 +2,8 @@ mysql:
   image: mysql:8.0
   database: petclinicdb
   credentials:
-    username: petuser
-    password: Mohan@123
+    username: ""
+    password: ""
   resources:
     requests:
       cpu: 100m

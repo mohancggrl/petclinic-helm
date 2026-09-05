@@ -54,12 +54,17 @@ jobs:
 
       # 🚀 Step 5: Deploy with Helm
       - name: Deploy Helm chart
+        env:
+          MYSQL_USERNAME: ${{ secrets.MYSQL_USERNAME }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         run: |
           echo "🚀 Deploying Helm release ${HELM_RELEASE} with image tag: ${{ github.event.inputs.image_tag }}"
           helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
             --namespace ${NAMESPACE} \
             -f conf_values.yaml \
             --set spring.tag=${{ github.event.inputs.image_tag }} \
+            --set mysql.credentials.username=${MYSQL_USERNAME} \
+            --set mysql.credentials.password=${MYSQL_PASSWORD} \
             --wait
 
       # ✅ Step 6: Verify Deployment
