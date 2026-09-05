@@ -2,7 +2,16 @@ pipeline {
     agent { label 'mohan' }
 
     parameters {
-        string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Docker image tag to deploy')
+        choice(
+            name: 'ACTION', 
+            choices: ['Deploy', 'Remove'], 
+            description: 'Choose whether to deploy or remove the Helm release'
+        )
+        string(
+            name: 'IMAGE_TAG', 
+            defaultValue: 'latest', 
+            description: 'Docker image tag to deploy (only used for Deploy)'
+        )
     }
 
     environment {
@@ -14,7 +23,8 @@ pipeline {
     }
 
     stages {
-        stage('Deploy to EKS with Helm') {
+
+        stage('Configure AWS & EKS') {
             steps {
                 withCredentials([[$class: 'UsernamePasswordMultiBinding',
                     credentialsId: 'aws_credentials',
@@ -25,27 +35,76 @@ pipeline {
 
                     sh '''
                         export AWS_DEFAULT_REGION=$KUBE_REGION
-                        aws eks update-kubeconfig --name $KUBE_CLUSTER
+                        aws eks update-kubeconfig --name $KUBE_CLUSTER --region $KUBE_REGION
                         kubectl get nodes
                         helm version
                         helm list -A || true
                     '''
+                }
+            }
+        }
 
+        stage('Deploy to EKS with Helm') {
+            when {
+                expression { params.ACTION == 'Deploy' }
+            }
+            steps {
+                withCredentials([
+                    [$class: 'UsernamePasswordMultiBinding',
+                        credentialsId: 'aws_credentials',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'],
+                    [$class: 'UsernamePasswordMultiBinding',
+                        credentialsId: 'mysql_credentials',
+                        usernameVariable: 'MYSQL_USERNAME',
+                        passwordVariable: 'MYSQL_PASSWORD']
+                ]) {
                     sh """
                         echo "🚀 Deploying Helm release ${HELM_RELEASE} with image tag: ${params.IMAGE_TAG}"
                         helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
                             --namespace ${NAMESPACE} \
                             -f conf_values.yaml \
                             --set spring.tag=${params.IMAGE_TAG} \
+                            --set mysql.credentials.username=\$MYSQL_USERNAME \
+                            --set mysql.credentials.password=\$MYSQL_PASSWORD \
                             --wait
                     """
+                }
+            }
+        }
+
+        stage('Remove Helm Release') {
+            when {
+                expression { params.ACTION == 'Remove' }
+            }
+            steps {
+                withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                    credentialsId: 'aws_credentials',
+                    usernameVariable: 'AWS_ACCESS_KEY_ID',
+                    passwordVariable: 'AWS_SECRET_ACCESS_KEY']]) {
 
                     sh '''
-                        echo "✅ Verifying deployment..."
-                        helm status petclinic
-                        kubectl get all -n default -o wide
+                        aws eks update-kubeconfig --name $KUBE_CLUSTER --region $KUBE_REGION
+                        echo "🗑️ Removing Helm release: $HELM_RELEASE..."
+                        helm uninstall $HELM_RELEASE -n $NAMESPACE || echo "Release not found."
+                        echo "✅ Verifying cleanup..."
+                        helm list -A || true
+                        kubectl get all -n $NAMESPACE || true
                     '''
                 }
+            }
+        }
+
+        stage('Verify Deployment') {
+            when {
+                expression { params.ACTION == 'Deploy' }
+            }
+            steps {
+                sh '''
+                    echo "✅ Verifying deployment..."
+                    helm status petclinic
+                    kubectl get all -n default -o wide
+                '''
             }
         }
     }
