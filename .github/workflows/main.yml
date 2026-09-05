@@ -65,6 +65,7 @@ jobs:
             --set spring.tag=${{ github.event.inputs.image_tag }} \
             --set mysql.credentials.username=${MYSQL_USERNAME} \
             --set mysql.credentials.password=${MYSQL_PASSWORD} \
+            --burst-limit=400 \
             --wait
 
       # ✅ Step 6: Verify Deployment
