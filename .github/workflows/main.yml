@@ -18,6 +18,7 @@ jobs:
       KUBE_CLUSTER: devil-eks-cluster
       KUBE_REGION: us-west-2
       NAMESPACE: default
+      HELM_KUBECONTEXT_DISCOVERY_TIMEOUT: "60s"
 
     steps:
       # 🧱 Step 1: Checkout code
@@ -41,7 +42,7 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.14.0
+          version: v3.16.0
 
       # 🔧 Step 4: Connect to EKS
       - name: Configure kubeconfig for EKS
@@ -66,6 +67,7 @@ jobs:
             --set mysql.credentials.username=${MYSQL_USERNAME} \
             --set mysql.credentials.password=${MYSQL_PASSWORD} \
             --burst-limit=400 \
+            --timeout 10m \
             --wait
 
       # ✅ Step 6: Verify Deployment
