@@ -20,6 +20,8 @@ pipeline {
         KUBE_CLUSTER = "devil-eks-cluster"
         KUBE_REGION = "us-west-2"
         NAMESPACE = "default"
+        IMAGE_REGISTRY = "494110626524.dkr.ecr.us-west-2.amazonaws.com/mohan"
+        IMAGE_NAME = "petclinic"
     }
 
     stages {
@@ -64,9 +66,13 @@ pipeline {
                         helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
                             --namespace ${NAMESPACE} \
                             -f conf_values.yaml \
+                            --set spring.repo=${IMAGE_REGISTRY} \
+                            --set spring.image=${IMAGE_NAME} \
                             --set spring.tag=${params.IMAGE_TAG} \
                             --set mysql.credentials.username=\$MYSQL_USERNAME \
                             --set mysql.credentials.password=\$MYSQL_PASSWORD \
+                            --burst-limit=400 \
+                            --timeout 10m \
                             --wait
                     """
                 }

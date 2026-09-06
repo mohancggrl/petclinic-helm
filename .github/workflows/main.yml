@@ -18,7 +18,8 @@ jobs:
       KUBE_CLUSTER: devil-eks-cluster
       KUBE_REGION: us-west-2
       NAMESPACE: default
-      HELM_KUBECONTEXT_DISCOVERY_TIMEOUT: "60s"
+      IMAGE_REGISTRY: "494110626524.dkr.ecr.us-west-2.amazonaws.com/mohan"
+      IMAGE_NAME: "petclinic"
 
     steps:
       # 🧱 Step 1: Checkout code
@@ -63,6 +64,8 @@ jobs:
           helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
             --namespace ${NAMESPACE} \
             -f conf_values.yaml \
+            --set spring.repo=${IMAGE_REGISTRY} \
+            --set spring.image=${IMAGE_NAME} \
             --set spring.tag=${{ github.event.inputs.image_tag }} \
             --set mysql.credentials.username=${MYSQL_USERNAME} \
             --set mysql.credentials.password=${MYSQL_PASSWORD} \

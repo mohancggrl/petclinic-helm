@@ -26,3 +26,5 @@ spring:
       memory: 1Gi
 mountPath: /opt/petclinic/config
 confFile: application.properties
+
+imagePullSecretName: ""
